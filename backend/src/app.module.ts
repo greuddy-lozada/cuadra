@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -52,11 +52,6 @@ import appConfig from './core/config/app.config';
 import jwtConfig from './core/config/jwt.config';
 import databaseConfig from './core/config/database.config';
 
-const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret) {
-  throw new Error('JWT_SECRET environment variable is required');
-}
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -69,10 +64,20 @@ if (!jwtSecret) {
         limit: 100,
       },
     ]),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: jwtSecret,
-      signOptions: { expiresIn: '15m' },
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET environment variable is required');
+        }
+        return {
+          secret,
+          signOptions: { expiresIn: '15m' as const },
+        };
+      },
     }),
     PrismaModule,
     CacheModule,
