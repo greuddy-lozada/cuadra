@@ -687,19 +687,24 @@ model Stock {
 // STOCK DETAIL
 // ────────────────────────────────────────────
 model StockDet {
-  id          String       @id @default(uuid()) @db.Uuid @map("id")
-  idStock     String @db.Uuid @map("id_stock")
-  type        Int       @map("type")
-  quantity    Int       @map("quantity")
-  expiryDate  DateTime? @map("expiry_date")
-  observation String?   @map("observation")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id            String    @id @default(uuid()) @db.Uuid @map("id")
+  idStock       String    @db.Uuid @map("id_stock")
+  type          Int       @map("type")
+  quantity      Int       @map("quantity")
+  expiryDate    DateTime? @map("expiry_date")
+  observation   String?   @map("observation")
+  referenceType String?   @map("reference_type") @db.VarChar(32)
+  referenceId   String?   @map("reference_id") @db.Uuid
+  balanceAfter  Int?      @map("balance_after")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   stock Stock @relation(fields: [idStock], references: [id])
 
   @@map("stock_details")
   @@index([idStock])
+  @@index([idStock, createdAt])
+  @@index([referenceType, referenceId])
 }
 
 // ────────────────────────────────────────────
