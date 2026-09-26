@@ -47,6 +47,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscription-paymen
 import { ReportsModule } from './modules/reports/reports.module';
 import { AccountsReceivableModule } from './modules/accounts-receivable/accounts-receivable.module';
 import { AccountsPayableModule } from './modules/accounts-payable/accounts-payable.module';
+import { AssistantModule } from './modules/assistant/assistant.module';
 
 import appConfig from './core/config/app.config';
 import jwtConfig from './core/config/jwt.config';
@@ -114,6 +115,7 @@ import databaseConfig from './core/config/database.config';
     ReportsModule,
     AccountsReceivableModule,
     AccountsPayableModule,
+    AssistantModule,
   ],
   providers: [
     {

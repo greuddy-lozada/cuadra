@@ -122,5 +122,10 @@
     "IS_DATE_STRING": "Must be a valid date",
     "IS_ARRAY": "Must be a list",
     "IS_POSITIVE": "Must be a positive number"
+  },
+  "ASSISTANT": {
+    "DAILY_LIMIT": "You reached today's question limit.",
+    "UNAVAILABLE": "The assistant is not available right now.",
+    "THREAD_NOT_FOUND": "We could not find that conversation."
   }
 }

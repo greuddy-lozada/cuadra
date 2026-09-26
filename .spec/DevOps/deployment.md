@@ -209,6 +209,7 @@ Serwist genera el service worker durante el build estático. Configuración en `
 | `REDIS_URL` | backend (opcional) | Cache; fallback in-memory |
 | Pago Móvil secrets | backend settings | No loguear |
 | `SENTRY_DSN` | staging/prod | Opcional |
+| `ASSISTANT_PROVIDER` / `ASSISTANT_BASE_URL` / `ASSISTANT_API_KEY` / `ASSISTANT_MODEL` | backend | Opcional. Sin URL o sin key el asistente queda apagado. Ver [assistant.md](../features/assistant.md) |
 
 Archivos: `backend/.env.example`, `.env.production.example` (raíz). **No** asumir `.env.example` en la raíz del monorepo.
 

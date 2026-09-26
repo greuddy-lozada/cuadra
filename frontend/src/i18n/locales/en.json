@@ -180,6 +180,7 @@
     "billing": "Billing",
     "syncConflicts": "Sync Conflicts",
     "reports": "Reports",
+    "assistant": "Ask",
     "accountsReceivable": "AR",
     "accountsPayable": "AP",
     "org": "Organization",
@@ -1528,6 +1529,26 @@
     },
     "footer": {
       "rights": "All rights reserved."
+    }
+  },
+  "assistant": {
+    "open": "Ask",
+    "title": "Ask",
+    "placeholder": "Ask about sales, stock, or purchases",
+    "send": "Send",
+    "loading": "Looking that up…",
+    "empty": "Ask how the business is doing, or generate a report.",
+    "newChat": "New conversation",
+    "viewReport": "View report",
+    "error": {
+      "send": "Could not send the question."
+    },
+    "unavailable": "The assistant is not available. Check the organization plan or the provider configuration.",
+    "suggestions": {
+      "today": "How are sales today?",
+      "stock": "Which products are low on stock?",
+      "purchases": "Which purchase orders are still open?",
+      "iva": "Generate this month's VAT report"
     }
   }
 }

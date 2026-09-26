@@ -21,6 +21,7 @@ import {
   BarChart3,
   Banknote,
   HandCoins,
+  Sparkles,
 } from 'lucide-react';
 import type { FeatureFlag } from '@/lib/feature-flags';
 
@@ -46,6 +47,7 @@ export const navigationGroups: NavGroup[] = [
     key: 'main',
     items: [
       { key: 'dashboard', label: 'nav.dashboard', icon: LayoutDashboard, path: '/dashboard', minLevel: 40 },
+      { key: 'assistant', label: 'nav.assistant', icon: Sparkles, path: '/assistant', minLevel: 40 },
     ],
   },
   {

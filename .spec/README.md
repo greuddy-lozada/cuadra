@@ -41,6 +41,7 @@ Código y feature/UI spec deben ir alineados en el **mismo PR**.
 | [features/dashboard.md](features/dashboard.md) | Live overview: KPIs del día, SSE+Redis, role-aware | `current` |
 | [features/accounts-receivable.md](features/accounts-receivable.md) | CXC: crédito POS, listado, abonos | `current` |
 | [features/accounts-payable.md](features/accounts-payable.md) | CXP: PO RECEIVED, listado, abonos | `current` |
+| [features/assistant.md](features/assistant.md) | Ask AI: preguntas del negocio y reportes existentes | `current` |
 
 ### 🏗️ Sistema (Reglas de Arquitectura)
 | Archivo | Propósito | Status |

@@ -32,6 +32,7 @@
 | Dashboard (live) | [dashboard.md](dashboard.md) | `current` |
 | Accounts receivable (CXC) | [accounts-receivable.md](accounts-receivable.md) | `current` |
 | Accounts payable (CXP) | [accounts-payable.md](accounts-payable.md) | `current` |
+| Ask AI (assistant) | [assistant.md](assistant.md) | `current` |
 
 ## Plantilla mínima
 

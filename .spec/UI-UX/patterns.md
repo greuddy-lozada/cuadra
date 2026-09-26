@@ -68,6 +68,7 @@ Antes de mergear un cambio de pantalla:
 | **Keyboard-first** | Login, PIN, POS search | `autoFocus` + refocus post-async | Obligar mouse para empezar a escribir |
 | **Hotkeys documentados** | Atajos globales/POS | `useHotkey` + badge/tooltip | Atajos ocultos; interferir con typing en inputs (excepto Escape) |
 | **Escape cierra** | Modales / sheets / dialogs | Cierra el overlay más cercano | Escape sin efecto |
+| **Assistant page** | Preguntar ventas, stock, compras o generar un reporte ya existente | Ítem de menú debajo de Dashboard → `/assistant`. Conversación en el contenido de la página. Errores en `Alert`. El enlace de reporte abre `/reports?report=` | Sheet lateral en el header; chat dentro del POS; generar el reporte solo en el texto sin enlace |
 | **POS nav lock** | API down mientras la ruta es `/pos` | Sidebar, tabs, org y logout deshabilitados (excepto POS) + tooltip `sync.posNavLocked`; cobro local sigue | Congelar la caja; dejar salir a pantallas que pegan al API |
 
 ### Marketing (público)

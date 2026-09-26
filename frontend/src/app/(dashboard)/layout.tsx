@@ -19,7 +19,7 @@ import { usePosNavLock } from '@/lib/sync/hooks/use-pos-nav-lock';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { OrgSwitcher } from '@/components/ui/org-switcher';
 import { VisitedTabs } from '@/features/visited-tabs/visited-tabs';
-import { LayoutDashboard, Users, UserCog, Truck, Building2, Package, Receipt, Tags, Store, ShoppingCart, DollarSign, ShieldCheck, Settings, CreditCard, Mail, ArrowLeftRight, Wallet, BarChart3, Banknote, HandCoins, ChevronDown, ChevronRight, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, Users, UserCog, Truck, Building2, Package, Receipt, Tags, Store, ShoppingCart, DollarSign, ShieldCheck, Settings, CreditCard, Mail, ArrowLeftRight, Wallet, BarChart3, Banknote, HandCoins, ChevronDown, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   dashboard: LayoutDashboard,
@@ -46,6 +46,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   billing: CreditCard,
   syncConflicts: AlertCircle,
   reports: BarChart3,
+  assistant: Sparkles,
   cashRegisters: Banknote,
   accountsReceivable: HandCoins,
 };
@@ -73,6 +74,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { lockNav } = usePosNavLock();
   const lockMessage = t('sync.posNavLocked');
   const isPosPage = pathname.startsWith('/pos');
+  const isAssistantPage = pathname.startsWith('/assistant');
+  const fillPage = isPosPage || isAssistantPage;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
 
@@ -300,8 +303,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="px-4 md:px-6 pt-3 pb-1 shrink-0 print:hidden">
           <VisitedTabs iconMap={iconMap} tabs={tabs} />
         </div>
-        <div className={`flex-1 overflow-x-hidden px-4 md:px-6 pb-6 pt-2 print:h-auto print:overflow-visible print:block print:px-4 print:pb-4 ${isPosPage ? 'min-h-0 overflow-hidden' : 'overflow-y-auto'}`}>
-          <div className={`w-full h-full ${isPosPage ? 'min-h-0' : ''} print:h-auto`}>
+        <div className={`flex-1 overflow-x-hidden px-4 md:px-6 pb-6 pt-2 print:h-auto print:overflow-visible print:block print:px-4 print:pb-4 ${fillPage ? 'min-h-0 overflow-hidden' : 'overflow-y-auto'}`}>
+          <div className={`w-full h-full ${fillPage ? 'min-h-0' : ''} print:h-auto`}>
             <Suspense fallback={<div className="flex items-center justify-center h-64"><p className="text-[#5a6578]">{t('common.loading')}</p></div>}>
               <ErrorBoundary>
                 {children}

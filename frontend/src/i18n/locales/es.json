@@ -180,6 +180,7 @@
     "billing": "Facturación",
     "syncConflicts": "Conflictos de sincronización",
     "reports": "Reportes",
+    "assistant": "Preguntar",
     "accountsReceivable": "CXC",
     "accountsPayable": "CXP",
     "org": "Organización",
@@ -1528,6 +1529,26 @@
     },
     "footer": {
       "rights": "Todos los derechos reservados."
+    }
+  },
+  "assistant": {
+    "open": "Preguntar",
+    "title": "Preguntar",
+    "placeholder": "Pregunta sobre ventas, stock o compras",
+    "send": "Enviar",
+    "loading": "Consultando…",
+    "empty": "Pregunta cómo va el negocio o genera un reporte.",
+    "newChat": "Nueva conversación",
+    "viewReport": "Ver reporte",
+    "error": {
+      "send": "No se pudo enviar la pregunta."
+    },
+    "unavailable": "El asistente no está disponible. Revisa el plan de la organización o la configuración del proveedor.",
+    "suggestions": {
+      "today": "¿Cómo van las ventas de hoy?",
+      "stock": "¿Qué productos están bajos de stock?",
+      "purchases": "¿Qué órdenes de compra están pendientes?",
+      "iva": "Genera el reporte de IVA de este mes"
     }
   }
 }

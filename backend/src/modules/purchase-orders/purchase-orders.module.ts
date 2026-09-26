@@ -8,5 +8,6 @@ import { StocksModule } from '../stocks/stocks.module';
   imports: [AuditLogModule, StocksModule],
   controllers: [PurchaseOrdersController],
   providers: [PurchaseOrdersService],
+  exports: [PurchaseOrdersService],
 })
 export class PurchaseOrdersModule {}

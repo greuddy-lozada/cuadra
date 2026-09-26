@@ -29,7 +29,7 @@ Reemplaza referencias rotas a `specs/2026-06-20-plan-gating.md`. Nombres canóni
 |---|---|
 | `free` | customers, currencies, dashboard, exchange-rates, reports |
 | `starter` | products, brands, categories, taxes, suppliers, cash-register |
-| `professional` | **sales**, purchase-orders, stocks, batches, pago-movil transactions |
+| `professional` | **sales**, purchase-orders, stocks, batches, pago-movil transactions, **assistant** (`POST /assistant/messages`, `GET /assistant/thread`). `GET /assistant/status` no lleva `@PlanLevel`: responde `enabled: false` si el plan no alcanza o el provider no está configurado |
 | *(none)* | sync, auth, users, companies, uploads, admin/*, payments, subscriptions, health, bootstrap, pago-movil config |
 
 **Gap:** POS crea ventas vía `/sync/push`, y **sync no tiene `@PlanLevel`**, así que el create de sales puede no exigir `professional` en el path de caja. Cualquier cambio de gating debe considerar sync + sales juntos.

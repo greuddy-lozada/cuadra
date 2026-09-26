@@ -59,6 +59,7 @@ model User {
   pagoMovilTransactions     PagoMovilTransaction[]
   reviewedSubscriptionPayments SubscriptionPayment[]  @relation("Reviewer")
   generatedReports      GeneratedReport[]
+  assistantThreads      AssistantThread[]
   registerSessions      RegisterSession[]
   closedSettlements     RegisterSettlement[] @relation("SettlementClosedBy")
   adminApprovalsPerformed AdminApproval[] @relation("AdminApprovalPerformedBy")
@@ -149,6 +150,7 @@ model Organization {
   auditLogs             AuditLog[]
   subscriptionPayments  SubscriptionPayment[]
   generatedReports      GeneratedReport[]
+  assistantThreads      AssistantThread[]
   cashRegisters          CashRegister[]
   registerSessions       RegisterSession[]
   registerSettlements    RegisterSettlement[]
@@ -1098,6 +1100,39 @@ model GeneratedReport {
   @@index([organizationId, type])
   @@index([organizationId, createdAt])
   @@index([userId])
+}
+
+// ────────────────────────────────────────────
+// ASSISTANT
+// ────────────────────────────────────────────
+model AssistantThread {
+  id             String   @id @default(uuid()) @db.Uuid @map("id")
+  organizationId String   @db.Uuid @map("organization_id")
+  userId         String   @db.Uuid @map("user_id")
+  title          String   @default("") @map("title")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  user         User               @relation(fields: [userId], references: [id])
+  messages     AssistantMessage[]
+
+  @@map("assistant_threads")
+  @@index([organizationId, userId, updatedAt])
+}
+
+model AssistantMessage {
+  id        String   @id @default(uuid()) @db.Uuid @map("id")
+  threadId  String   @db.Uuid @map("thread_id")
+  role      String   @map("role")
+  content   String   @map("content") @db.Text
+  reportId  String?  @db.Uuid @map("report_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  thread AssistantThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@map("assistant_messages")
+  @@index([threadId, createdAt])
 }
 
 // ────────────────────────────────────────────

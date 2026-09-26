@@ -122,5 +122,10 @@
     "IS_DATE_STRING": "Debe ser una fecha válida",
     "IS_ARRAY": "Debe ser una lista",
     "IS_POSITIVE": "Debe ser un número positivo"
+  },
+  "ASSISTANT": {
+    "DAILY_LIMIT": "Llegaste al límite de preguntas de hoy.",
+    "UNAVAILABLE": "El asistente no está disponible en este momento.",
+    "THREAD_NOT_FOUND": "No encontramos esa conversación."
   }
 }

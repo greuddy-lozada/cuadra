@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/i18n';
 import { sileo } from 'sileo';
 import { useReports, useDeleteReport } from '../hooks/use-reports';
@@ -25,8 +26,11 @@ const PANEL_WIDTH = 720;
 
 export function ReportsPage() {
   const { t } = useI18n();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const reportFromQuery = searchParams.get('report');
   const [activeCategory, setActiveCategory] = useState<string>(CATEGORIES[0].key);
-  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(reportFromQuery);
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
 
   const { data, isLoading, refetch } = useReports({ limit: 100 });
@@ -48,6 +52,10 @@ export function ReportsPage() {
     [allReports, selectedReportId],
   );
 
+  useEffect(() => {
+    if (reportFromQuery) setSelectedReportId(reportFromQuery);
+  }, [reportFromQuery]);
+
   const panelOpen = !!selectedReportId;
 
   useEffect(() => {
@@ -56,11 +64,12 @@ export function ReportsPage() {
       if (e.key === 'Escape') {
         e.preventDefault();
         setSelectedReportId(null);
+        if (searchParams.get('report')) router.replace('/reports');
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [panelOpen]);
+  }, [panelOpen, router, searchParams]);
 
   const handleGenerated = (reportId?: string) => {
     refetch();
@@ -88,7 +97,10 @@ export function ReportsPage() {
     <SlideForm
       open={panelOpen}
       title={panelTitle}
-      onClose={() => setSelectedReportId(null)}
+      onClose={() => {
+        setSelectedReportId(null);
+        if (searchParams.get('report')) router.replace('/reports');
+      }}
       panelWidth={PANEL_WIDTH}
       panel={
         selectedReportId ? (

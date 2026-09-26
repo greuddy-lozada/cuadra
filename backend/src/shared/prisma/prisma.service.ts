@@ -25,6 +25,7 @@ export const TENANT_SCOPED_MODELS: readonly string[] = [
   'CashRegister',
   'RegisterSession',
   'RegisterSettlement',
+  'AssistantThread',
 ];
 
 @Injectable()
