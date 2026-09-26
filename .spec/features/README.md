@@ -24,6 +24,7 @@
 | Feature | Archivo | Status |
 |---|---|---|
 | Products | [products.md](products.md) | `current` |
+| Stocks / kardex | [stocks.md](stocks.md) | `current` |
 | POS | [pos.md](pos.md) | `current` |
 | Sales | [sales.md](sales.md) | `current` |
 | Sync / Offline | [sync.md](sync.md) | `current` |

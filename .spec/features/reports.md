@@ -49,7 +49,7 @@ Raw SQL en registry es excepción documentada (analytics); siempre parametrizado
 | `sales_by_customer` | sales | ✅ Shipped | Dueño / cobranza |
 | `sales_by_product` | sales | ✅ Shipped | Dueño / inventario |
 | `inventory_status` | inventory | ✅ Shipped | Inventario |
-| `stock_movements` | inventory | ✅ Shipped | Inventario / auditorías internas |
+| `stock_movements` | inventory | ✅ Shipped | Inventario / auditorías internas. Solo filas con `balance_after` (el kardex). |
 | `fiscal_iva` | fiscal | ✅ Shipped | Contador gestión (no libro SENIAT) |
 | `fiscal_withholding` | fiscal | ✅ Shipped | Retenciones |
 | `financial_ar` | financial | ✅ Shipped | CxC / aging |
@@ -121,6 +121,7 @@ Marcar estos como `aspirational` hasta existir documento fiscal real.
 | Módulo | Relación |
 |---|---|
 | sales / POS / sync | Ventas; cuidado con DRAFT vs emitidas |
+| stocks | `stock_movements` lee el kardex. Ver [stocks.md](stocks.md) |
 | taxes | Alícuotas para `fiscal_iva` |
 | withholding / POs / suppliers | Retenciones y compras |
 | AR / AP | Aging financiero |

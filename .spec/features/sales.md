@@ -57,10 +57,10 @@ Persistir ventas (líneas, montos VES/USD, cliente, sesión de caja) con control
 ## 3. Business rules
 
 1. **Create** siempre persiste `status: DRAFT` (ignora `status` del DTO si viene).
-2. Create decrementa stock por producto y recalcula `product.totalExistence`.
+2. Create descuenta la fila de stock más antigua del producto (y la siguiente si no alcanza), escribe una salida de kardex por fila y recalcula `product.totalExistence`. Si no hay existencia, `SALE_005` y no quedan movimientos. Ver [stocks.md](stocks.md).
 3. **Update** solo si `isMutable`; si no → `SALE_001` (`AppException`).
 4. Update DTO permite solo campos no financieros: `code`, `date`, `paymentMethod`, `idCustomer` — no items/payments/montos.
-5. **Delete** restaura stock y soft-delete (`deletedAt` vía Prisma extension).
+5. **Delete** escribe entradas de kardex en las mismas filas que la venta descontó y soft-delete (`deletedAt` vía Prisma extension).
 6. Multi-tenant: siempre scoped por `organizationId`.
 7. No hard-delete de ventas con historial.
 8. Si al crear hay saldo no pagado en efectivo/transfer/etc. (incl. `PaymentMethod.Credit=6`), se crea `AccountsReceivable` con `amount = unpaid`, `credit = 0`, `dueDate = issue + 30d` (ver [accounts-receivable.md](accounts-receivable.md)).
@@ -86,7 +86,7 @@ Throttle create/update/delete: 30/min
 | `GET` | `/` | Paginated (`page`, `limit`). Optional `search` (code or customer name), `from`, `to` (ISO dates) |
 | `GET` | `/:id` | UUID |
 | `PATCH` | `/:id` | Solo si DRAFT / mutable |
-| `DELETE` | `/:id` | Soft-delete + restore stock |
+| `DELETE` | `/:id` | Soft-delete + entrada de kardex |
 
 ### Error codes
 
@@ -95,6 +95,8 @@ Throttle create/update/delete: 30/min
 | `SALE_001` | Emitida/inmutable — no update | Sí |
 | `SALE_002` | Not found | Sí |
 | `SALE_003` | Sin ítems | Definido, no usado |
+| `SALE_004` | Crédito sin cliente | Sí |
+| `SALE_005` | Existencia insuficiente — la venta no se guarda | Sí |
 
 ---
 
@@ -103,7 +105,7 @@ Throttle create/update/delete: 30/min
 | Módulo | Relación |
 |---|---|
 | POS + sync | Creación offline → `POST /sync/push` → `SalesService.create` |
-| products / stocks | Decrement / restore existencia |
+| products / stocks | Descuento, reposición y kardex. Ver [stocks.md](stocks.md) |
 | customers | FK opcional |
 | cash-register | `registerSessionId` |
 | reports / dashboard | Lectura de ventas |
