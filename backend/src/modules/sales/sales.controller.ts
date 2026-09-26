@@ -18,7 +18,7 @@ import {
   ROLE_LEVEL,
 } from '../../common/decorators/min-level.decorator';
 import { PlanLevel } from '../../common/decorators/plan-level.decorator';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { SalesListQueryDto } from './dto/sales-list-query.dto';
 
 @Controller('sales')
 @MinOrgLevel(ROLE_LEVEL.employee)
@@ -33,8 +33,8 @@ export class SalesController {
   }
 
   @Get()
-  async findAll(@Query() pagination: PaginationQueryDto) {
-    return this.salesService.findAll(pagination.page, pagination.limit);
+  async findAll(@Query() query: SalesListQueryDto) {
+    return this.salesService.findAll(query);
   }
 
   @Get(':id')

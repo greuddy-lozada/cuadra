@@ -22,7 +22,7 @@ import type { CartItem } from './models/pos.model';
 import type { ParkedOrder, LocalSale } from '@/lib/sync/db';
 import { localDb } from '@/lib/sync/db';
 import { useOffline } from '@/lib/sync/hooks/use-offline';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useMyActiveSession } from '@/features/cash-register/hooks/use-cash-register';
 import RegisterSelector from '@/features/cash-register/components/register-selector';
 import CloseRegisterDialog from '@/features/cash-register/components/close-register-dialog';
@@ -236,8 +236,9 @@ export default function PosPage() {
         <SheetContent side="right" className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>{t('pos.sales.title')}</SheetTitle>
+            <SheetDescription className="sr-only">{t('pos.sales.search')}</SheetDescription>
           </SheetHeader>
-          <div className="mt-4">
+          <div className="px-4 pb-4">
             <SaleHistory variant="sheet" onSelectSale={(sale) => { setDetailSale(sale); setHistorySheetOpen(false); }} />
           </div>
         </SheetContent>

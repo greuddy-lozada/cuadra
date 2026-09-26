@@ -208,5 +208,40 @@ describe('SalesService', () => {
         where: { organizationId: mockOrgId },
       });
     });
+
+    it('debe filtrar por código o nombre de cliente', async () => {
+      mockPrisma.sale.findMany.mockResolvedValue([]);
+      mockPrisma.sale.count.mockResolvedValue(0);
+
+      await service.findAll({ search: '00012' });
+      expect(mockPrisma.sale.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            organizationId: mockOrgId,
+            AND: [
+              {
+                OR: [
+                  { code: { contains: '00012', mode: 'insensitive' } },
+                  {
+                    customer: {
+                      is: {
+                        firstName: { contains: '00012', mode: 'insensitive' },
+                      },
+                    },
+                  },
+                  {
+                    customer: {
+                      is: {
+                        lastName: { contains: '00012', mode: 'insensitive' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        }),
+      );
+    });
   });
 });

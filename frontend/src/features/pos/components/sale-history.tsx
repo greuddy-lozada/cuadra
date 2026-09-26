@@ -5,8 +5,9 @@ import { ChevronDown, ChevronUp, Receipt, Eye, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useI18n } from '@/i18n';
+import apiClient from '@/lib/api/api-client';
 import { localDb, type LocalSale } from '@/lib/sync/db';
-import type { CreateSaleRequest } from '../models/pos.model';
+import { PaymentMethod, type CreateSaleRequest, type SaleItem } from '../models/pos.model';
 
 interface SaleHistoryProps {
   onSelectSale: (sale: LocalSale) => void;
@@ -14,6 +15,73 @@ interface SaleHistoryProps {
 }
 
 const PAGE_SIZE = 20;
+const FETCH_LIMIT = 50;
+
+interface ApiSaleRow {
+  id: string;
+  code?: string | null;
+  date?: string | null;
+  createdAt: string;
+  amount?: number | null;
+  amountUsd?: number | null;
+  exchangeRate?: number | null;
+  paymentMethod?: number | null;
+  idCustomer?: string | null;
+  totalTax?: number | null;
+  totalTaxUsd?: number | null;
+  withholdingPercentage?: number | null;
+  withholdingAmount?: number | null;
+  withholdingAmountUsd?: number | null;
+  customer?: { firstName?: string | null; lastName?: string | null } | null;
+  details?: Array<{
+    idProduct: string;
+    quantity?: number | null;
+    unitPrice?: number | null;
+    unitPriceUsd?: number | null;
+    subtotal?: number | null;
+    subtotalUsd?: number | null;
+    taxName?: string | null;
+    taxPercentage?: number | null;
+    taxAmount?: number | null;
+    taxAmountUsd?: number | null;
+  }>;
+}
+
+function toHistorySale(sale: ApiSaleRow): LocalSale {
+  const customerName = sale.customer
+    ? `${sale.customer.firstName ?? ''} ${sale.customer.lastName ?? ''}`.trim()
+    : undefined;
+  const items: SaleItem[] = (sale.details ?? []).map((detail) => ({
+    productId: detail.idProduct,
+    quantity: Number(detail.quantity ?? 0),
+    unitPrice: Number(detail.unitPrice ?? 0),
+    unitPriceUsd: Number(detail.unitPriceUsd ?? 0),
+    subtotal: Number(detail.subtotal ?? 0),
+    subtotalUsd: Number(detail.subtotalUsd ?? 0),
+    taxName: detail.taxName ?? undefined,
+    taxPercentage: detail.taxPercentage ?? undefined,
+    taxAmount: detail.taxAmount != null ? Number(detail.taxAmount) : undefined,
+    taxAmountUsd: detail.taxAmountUsd != null ? Number(detail.taxAmountUsd) : undefined,
+  }));
+  const data: CreateSaleRequest = {
+    code: sale.code ?? '',
+    date: sale.date ?? sale.createdAt,
+    amount: Number(sale.amount ?? 0),
+    amountUsd: Number(sale.amountUsd ?? 0),
+    exchangeRate: Number(sale.exchangeRate ?? 0),
+    paymentMethod: sale.paymentMethod ?? PaymentMethod.Cash,
+    status: 1,
+    idCustomer: sale.idCustomer ?? undefined,
+    customerName,
+    items,
+    totalTax: sale.totalTax != null ? Number(sale.totalTax) : undefined,
+    totalTaxUsd: sale.totalTaxUsd != null ? Number(sale.totalTaxUsd) : undefined,
+    withholdingPercentage: sale.withholdingPercentage ?? undefined,
+    withholdingAmount: sale.withholdingAmount != null ? Number(sale.withholdingAmount) : undefined,
+    withholdingAmountUsd: sale.withholdingAmountUsd != null ? Number(sale.withholdingAmountUsd) : undefined,
+  };
+  return { localId: sale.id, data, createdAt: sale.createdAt };
+}
 
 export function SaleHistory({ onSelectSale, variant = 'accordion' }: SaleHistoryProps) {
   const { t } = useI18n();
@@ -25,31 +93,67 @@ export function SaleHistory({ onSelectSale, variant = 'accordion' }: SaleHistory
   const [toDate, setToDate] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-    const [customerNames, setCustomerNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [customerNames, setCustomerNames] = useState<Record<string, string>>({});
 
   const loadAll = useCallback(async () => {
-    const all = await localDb.sales.orderBy('id').reverse().toArray();
-    setAllSales(all);
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const local = await localDb.sales.orderBy('id').reverse().toArray();
+      let remote: LocalSale[] = [];
+      try {
+        const params: Record<string, string | number> = { page: 1, limit: FETCH_LIMIT };
+        const q = query.trim();
+        if (q) params.search = q;
+        if (fromDate) params.from = new Date(`${fromDate}T00:00:00`).toISOString();
+        if (toDate) params.to = new Date(`${toDate}T23:59:59.999`).toISOString();
+        const response = await apiClient.get<{ data: ApiSaleRow[] }>('/sales', { params });
+        remote = (response.data.data ?? []).map(toHistorySale);
+      } catch {
+        if (local.length === 0) setLoadError(true);
+      }
 
-    const cIds = [...new Set(
-      all
-        .map(s => (s.data as CreateSaleRequest).idCustomer)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0),
-    )];
-    if (cIds.length > 0) {
-      const customers = await localDb.customers.bulkGet(cIds);
+      const remoteCodes = new Set(
+        remote
+          .map((sale) => (sale.data as CreateSaleRequest).code)
+          .filter((code) => code.length > 0),
+      );
+      const pending = local.filter((sale) => {
+        const code = (sale.data as CreateSaleRequest).code ?? '';
+        return code.length === 0 || !remoteCodes.has(code);
+      });
+      const merged = [...pending, ...remote];
+      setAllSales(merged);
+
       const names: Record<string, string> = {};
-      for (const c of customers) {
-        if (c) names[c.id] = `${c.firstName} ${c.lastName}`;
+      for (const sale of merged) {
+        const data = sale.data as CreateSaleRequest;
+        if (data.idCustomer && data.customerName) names[data.idCustomer] = data.customerName;
+      }
+      const missingIds = [...new Set(
+        merged
+          .map((sale) => (sale.data as CreateSaleRequest).idCustomer)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0 && !names[id]),
+      )];
+      if (missingIds.length > 0) {
+        const customers = await localDb.customers.bulkGet(missingIds);
+        for (const customer of customers) {
+          if (customer) names[customer.id] = `${customer.firstName} ${customer.lastName}`;
+        }
       }
       setCustomerNames(names);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [query, fromDate, toDate]);
 
   useEffect(() => {
-    if (!open) return;
-    loadAll();
-  }, [open, loadAll]);
+    if (variant !== 'sheet' && !open) return;
+    const timer = setTimeout(() => { void loadAll(); }, 300);
+    return () => clearTimeout(timer);
+  }, [variant, open, loadAll]);
 
   const filtered = useCallback(() => {
     let result = allSales;
@@ -59,13 +163,14 @@ export function SaleHistory({ onSelectSale, variant = 'accordion' }: SaleHistory
       result = result.filter(s => {
         const data = s.data as CreateSaleRequest;
         if ((data.code ?? '').toLowerCase().includes(q)) return true;
+        if (data.customerName?.toLowerCase().includes(q)) return true;
         if (data.idCustomer && customerNames[data.idCustomer]?.toLowerCase().includes(q)) return true;
         return false;
       });
     }
 
     if (fromDate) {
-      const from = new Date(fromDate).getTime();
+      const from = new Date(`${fromDate}T00:00:00`).getTime();
       result = result.filter(s => {
         const data = s.data as CreateSaleRequest;
         return data.date ? new Date(data.date).getTime() >= from : true;
@@ -73,7 +178,7 @@ export function SaleHistory({ onSelectSale, variant = 'accordion' }: SaleHistory
     }
 
     if (toDate) {
-      const to = new Date(toDate).getTime() + 86400000;
+      const to = new Date(`${toDate}T23:59:59.999`).getTime();
       result = result.filter(s => {
         const data = s.data as CreateSaleRequest;
         return data.date ? new Date(data.date).getTime() <= to : true;
@@ -134,14 +239,19 @@ export function SaleHistory({ onSelectSale, variant = 'accordion' }: SaleHistory
       </div>
 
       <div className="space-y-1 max-h-48 overflow-y-auto">
-        {sales.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">{t('pos.sales.empty')}</p>}
+        {loading && sales.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">{t('common.loading')}</p>}
+        {!loading && sales.length === 0 && (
+          <p className="text-sm text-muted-foreground p-2 text-center">
+            {loadError ? t('pos.sales.error.load') : t('pos.sales.empty')}
+          </p>
+        )}
         {sales.map(s => {
           const data = s.data as CreateSaleRequest;
-          const custLabel = data.idCustomer ? customerNames[data.idCustomer] : '';
+          const custLabel = data.customerName || (data.idCustomer ? customerNames[data.idCustomer] : '') || '';
           const time = data.date ? new Date(data.date).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }) : '';
           return (
             <div
-              key={s.id}
+              key={s.localId || s.id}
               className="text-sm flex justify-between items-center p-1.5 rounded hover:bg-muted/50 cursor-pointer"
               onClick={(e) => { e.stopPropagation(); onSelectSale(s); }}
               title={t('pos.sales.detail')}

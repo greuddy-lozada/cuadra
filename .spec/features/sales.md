@@ -83,7 +83,7 @@ Throttle create/update/delete: 30/min
 | Método | Ruta | Notas |
 |---|---|---|
 | `POST` | `/` | Create + stock decrement |
-| `GET` | `/` | Paginated (`page`, `limit`) |
+| `GET` | `/` | Paginated (`page`, `limit`). Optional `search` (code or customer name), `from`, `to` (ISO dates) |
 | `GET` | `/:id` | UUID |
 | `PATCH` | `/:id` | Solo si DRAFT / mutable |
 | `DELETE` | `/:id` | Soft-delete + restore stock |

@@ -168,11 +168,46 @@ export class SalesService {
     return sale;
   }
 
-  async findAll(page = 1, limit = 20) {
+  async findAll(
+    query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      from?: string;
+      to?: string;
+    } = {},
+  ) {
     const orgId = this.context.getCurrent()?.organizationId;
     if (!orgId) throw new Error('No organization context');
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
-    const where = { organizationId: orgId };
+    const where: Prisma.SaleWhereInput = { organizationId: orgId };
+    const search = query.search?.trim();
+    if (search) {
+      const tokens = search.split(/\s+/).filter(Boolean);
+      where.AND = tokens.map((token) => ({
+        OR: [
+          { code: { contains: token, mode: 'insensitive' } },
+          {
+            customer: {
+              is: { firstName: { contains: token, mode: 'insensitive' } },
+            },
+          },
+          {
+            customer: {
+              is: { lastName: { contains: token, mode: 'insensitive' } },
+            },
+          },
+        ],
+      }));
+    }
+    if (query.from || query.to) {
+      where.date = {
+        ...(query.from ? { gte: new Date(query.from) } : {}),
+        ...(query.to ? { lte: new Date(query.to) } : {}),
+      };
+    }
     const [data, total] = await Promise.all([
       this.prisma.sale.findMany({
         where,

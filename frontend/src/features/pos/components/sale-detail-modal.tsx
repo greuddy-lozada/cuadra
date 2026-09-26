@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useI18n } from '@/i18n';
 import { localDb, type LocalSale } from '@/lib/sync/db';
 import type { SaleItem, SalePayment, CreateSaleRequest } from '../models/pos.model';
@@ -76,6 +76,7 @@ export function SaleDetailModal({ sale, open, onOpenChange }: SaleDetailModalPro
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-mono text-sm">{data?.code}</DialogTitle>
+          <DialogDescription className="sr-only">{t('pos.sales.detail')}</DialogDescription>
         </DialogHeader>
 
         {loading ? (
@@ -130,10 +131,9 @@ export function SaleDetailModal({ sale, open, onOpenChange }: SaleDetailModalPro
                 </div>
               )}
               {data.exchangeRate > 0 && (
-                <div className="flex justify-between">
-                  <span>{t('pos.cart.rate')}</span>
-                  <span className="tabular-nums">Bs. {data.exchangeRate.toFixed(2)}</span>
-                </div>
+                <p className="text-right">
+                  {tp('pos.cart.rate', { rate: data.exchangeRate.toFixed(2) })}
+                </p>
               )}
             </div>
 

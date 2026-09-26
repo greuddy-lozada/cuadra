@@ -52,7 +52,7 @@ Nav: `/pos`, `minLevel: 40`. Hoy **sin** `requiredFeature` en nav (gap vs plan `
 | Cliente | CustomerSearch; quick-add; clear customer hotkey |
 | Estacionar | Dexie `parkedOrders` only; resume merge por productId |
 | Cobrar | `PaymentModal` → `useOfflineSale.createSale` |
-| Historial | Lee `localDb.sales` (no API list) |
+| Historial | `GET /api/sales` (código, cliente, fechas) y fusiona ventas locales aún no sincronizadas en `localDb.sales` |
 | Sync | Auth provider arranca SyncEngine; push cuando hay red |
 | API down (deploy) | Cobro sigue (Dexie). Sidebar, tabs, org switcher, logout y abrir/cerrar caja se bloquean en `/pos` hasta `HEAD /api/health` 200. Si el selector de caja está abierto, se cierra para no bloquear el cobro. |
 
