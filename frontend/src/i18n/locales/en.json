@@ -577,6 +577,25 @@
       "save": "Error saving stock entry",
       "load": "Error loading stock",
       "delete": "Error deleting stock entry"
+    },
+    "kardex": {
+      "action": "Kardex",
+      "title": "Kardex for {{product}}",
+      "empty": "This product has no movements",
+      "date": "Date",
+      "document": "Document",
+      "type": "Type",
+      "entry": "In",
+      "exit": "Out",
+      "balance": "Balance",
+      "observation": "Note",
+      "doc": {
+        "sale": "Sale",
+        "purchase": "Purchase",
+        "opening": "Opening balance",
+        "adjustment": "Adjustment"
+      },
+      "error": "Could not load the kardex"
     }
   },
   "purchaseOrders": {
@@ -1324,6 +1343,7 @@
       "movementType": "Movement Type",
       "movementEntry": "Entry",
       "movementExit": "Exit",
+      "balance": "Balance",
       "observation": "Observation",
       "monthlyDetail": "Monthly Detail",
       "totalCustomers": "Customers",

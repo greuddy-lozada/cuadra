@@ -18,6 +18,7 @@ import {
 } from '../../common/decorators/min-level.decorator';
 import { PlanLevel } from '../../common/decorators/plan-level.decorator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { KardexQueryDto } from './dto/kardex-query.dto';
 
 @Controller('stocks')
 @PlanLevel('professional')
@@ -40,6 +41,16 @@ export class StocksController {
   @MinOrgLevel(ROLE_LEVEL.employee)
   getAlerts(@Query('threshold') threshold?: string) {
     return this.stocksService.getAlerts(threshold ? Number(threshold) : 5);
+  }
+
+  @Get('kardex')
+  @MinOrgLevel(ROLE_LEVEL.employee)
+  findKardex(@Query() query: KardexQueryDto) {
+    return this.stocksService.findKardex(
+      query.productId,
+      query.page,
+      query.limit,
+    );
   }
 
   @Get(':id')

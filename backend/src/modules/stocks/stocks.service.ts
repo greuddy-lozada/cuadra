@@ -18,6 +18,16 @@ const stockInclude = {
   batch: true,
 } satisfies Prisma.StockInclude;
 
+function kardexDocument(
+  referenceType: string | null,
+  observation: string | null,
+): 'sale' | 'purchase' | 'opening' | 'adjustment' {
+  if (referenceType === StockReferenceType.Sale) return 'sale';
+  if (referenceType === StockReferenceType.PurchaseOrder) return 'purchase';
+  if (observation === 'Saldo inicial') return 'opening';
+  return 'adjustment';
+}
+
 @Injectable()
 export class StocksService {
   constructor(
@@ -139,6 +149,47 @@ export class StocksService {
       });
     });
     return { data: stock, message: 'STOCK.CREATED' };
+  }
+
+  async findKardex(productId: string, page = 1, limit = 20) {
+    const orgId = this.contextService?.getCurrent()?.organizationId;
+    if (!orgId) throw new Error('No organization context');
+    const skip = (page - 1) * limit;
+    const where: Prisma.StockDetWhereInput = {
+      balanceAfter: { not: null },
+      stock: { idProduct: productId, organizationId: orgId, deletedAt: null },
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.stockDet.findMany({
+        where,
+        include: {
+          stock: { include: { batch: { select: { code: true } } } },
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+        skip,
+        take: limit,
+      }),
+      this.prisma.stockDet.count({ where }),
+    ]);
+
+    return {
+      data: rows.map((row) => ({
+        id: row.id,
+        createdAt: row.createdAt,
+        type: row.type,
+        quantity: row.quantity,
+        entry: row.type === StockMovementType.Exit ? null : row.quantity,
+        exit: row.type === StockMovementType.Exit ? row.quantity : null,
+        balanceAfter: row.balanceAfter,
+        observation: row.observation,
+        referenceType: row.referenceType,
+        batchCode: row.stock.batch?.code ?? null,
+        document: kardexDocument(row.referenceType, row.observation),
+      })),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findAll(page = 1, limit = 20) {

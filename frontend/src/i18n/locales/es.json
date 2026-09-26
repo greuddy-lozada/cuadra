@@ -577,6 +577,25 @@
       "save": "Error al guardar entrada",
       "load": "Error al cargar inventario",
       "delete": "Error al eliminar entrada"
+    },
+    "kardex": {
+      "action": "Kardex",
+      "title": "Kardex de {{product}}",
+      "empty": "Este producto no tiene movimientos",
+      "date": "Fecha",
+      "document": "Documento",
+      "type": "Tipo",
+      "entry": "Entrada",
+      "exit": "Salida",
+      "balance": "Saldo",
+      "observation": "Observación",
+      "doc": {
+        "sale": "Venta",
+        "purchase": "Compra",
+        "opening": "Saldo inicial",
+        "adjustment": "Ajuste"
+      },
+      "error": "No se pudo cargar el kardex"
     }
   },
   "purchaseOrders": {
@@ -1324,6 +1343,7 @@
       "movementType": "Tipo Movimiento",
       "movementEntry": "Entrada",
       "movementExit": "Salida",
+      "balance": "Saldo",
       "observation": "Observación",
       "monthlyDetail": "Detalle Mensual",
       "totalCustomers": "Clientes",

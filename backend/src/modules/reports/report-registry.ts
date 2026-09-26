@@ -167,6 +167,7 @@ function stockMovementsQuery(
       COALESCE(b.code, '—') AS batch_code,
       sd.type,
       sd.quantity,
+      sd.balance_after,
       sd.observation
     FROM stock_details sd
     JOIN stocks s ON s.id = sd.id_stock
@@ -175,6 +176,7 @@ function stockMovementsQuery(
     WHERE s.organization_id = ${orgId}::uuid
       AND s.deleted_at IS NULL
       AND p.deleted_at IS NULL
+      AND sd.balance_after IS NOT NULL
       ${dateFilter}
     ORDER BY sd.created_at DESC
     LIMIT 200

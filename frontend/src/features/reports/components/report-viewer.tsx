@@ -380,6 +380,7 @@ function StockMovementsRenderer({ results }: { results: Record<string, unknown> 
           { key: 'batch_code', label: t('reports.fields.batch') },
           { key: 'type', label: t('reports.fields.movementType'), format: (v) => typeLabel(Number(v)) },
           { key: 'quantity', label: t('reports.fields.quantity'), align: 'right' },
+          { key: 'balance_after', label: t('reports.fields.balance'), align: 'right' },
           { key: 'observation', label: t('reports.fields.observation') },
         ]}
       />

@@ -43,3 +43,25 @@ export interface UpdateStockRequest {
   existence?: number;
   available?: boolean;
 }
+
+export interface KardexMovement {
+  id: string;
+  createdAt: string;
+  type: number;
+  quantity: number;
+  entry: number | null;
+  exit: number | null;
+  balanceAfter: number | null;
+  observation: string | null;
+  referenceType: string | null;
+  batchCode: string | null;
+  document: 'sale' | 'purchase' | 'opening' | 'adjustment';
+}
+
+export interface KardexPage {
+  rows: KardexMovement[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

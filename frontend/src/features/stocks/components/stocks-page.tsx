@@ -20,10 +20,11 @@ import { useAuth } from '@/providers/auth-provider';
 import { hasMinLevel } from '@/lib/auth/roles';
 import { extractApiError } from '@/lib/api/extract-api-error';
 import apiClient from '@/lib/api/api-client';
+import { KardexPanel } from '@/features/stocks/components/kardex-panel';
 
 export default function StocksPage() {
   const { items: stocksData, isLoading: loading, create, update, remove } = useStocks();
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const { effectiveRoleSlug } = useAuth();
   const role = effectiveRoleSlug;
   const canEdit = hasMinLevel(role, 60);
@@ -37,6 +38,16 @@ export default function StocksPage() {
   });
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Stock | null>(null);
+  const [kardexProduct, setKardexProduct] = useState<{ id: string; label: string } | null>(null);
+
+  const openKardex = (stock: Stock) => {
+    setFormOpen(false);
+    setError('');
+    const label = stock.product
+      ? `${stock.product.code} - ${stock.product.name}`
+      : stock.idProduct;
+    setKardexProduct({ id: stock.idProduct, label });
+  };
 
   const columns: Column<Stock>[] = [
     {
@@ -56,6 +67,17 @@ export default function StocksPage() {
     },
     { field: 'existence', headerName: t('stocks.field.existence') },
     {
+      field: 'kardex',
+      headerName: t('stocks.kardex.action'),
+      sortable: false,
+      mobile: 'action',
+      render: (row) => (
+        <Button variant="outline" size="sm" onClick={() => openKardex(row)}>
+          {t('stocks.kardex.action')}
+        </Button>
+      ),
+    },
+    {
       field: 'available',
       headerName: t('stocks.field.available'),
       render: (row) => (row.available ? t('common.yes') : t('common.no')),
@@ -63,6 +85,7 @@ export default function StocksPage() {
   ];
 
   const openCreate = () => {
+    setKardexProduct(null);
     setSelectedStock(null);
     setError('');
     setFormData({ idProduct: '', existence: 1 });
@@ -70,6 +93,7 @@ export default function StocksPage() {
   };
 
   const openEdit = (stock: Stock) => {
+    setKardexProduct(null);
     setSelectedStock(stock);
     setError('');
     setFormData({
@@ -80,6 +104,11 @@ export default function StocksPage() {
       available: stock.available,
     });
     setFormOpen(true);
+  };
+
+  const closePanel = () => {
+    setFormOpen(false);
+    setKardexProduct(null);
   };
 
   const handleSave = () => {
@@ -124,10 +153,20 @@ export default function StocksPage() {
 
   return (
     <SlideForm
-      open={formOpen}
-      title={selectedStock ? t('stocks.edit') : t('stocks.new')}
-      onClose={() => setFormOpen(false)}
+      open={formOpen || !!kardexProduct}
+      title={
+        kardexProduct
+          ? tp('stocks.kardex.title', { product: kardexProduct.label })
+          : selectedStock
+            ? t('stocks.edit')
+            : t('stocks.new')
+      }
+      onClose={closePanel}
+      panelWidth={kardexProduct ? 720 : 420}
       panel={
+        kardexProduct ? (
+          <KardexPanel key={kardexProduct.id} productId={kardexProduct.id} />
+        ) : (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>{t('stocks.field.product')}</Label>
@@ -186,6 +225,7 @@ export default function StocksPage() {
             {create.isPending || update.isPending ? t('common.saving') : t('common.save')}
           </Button>
         </div>
+        )
       }
     >
       <div className="max-w-6xl mx-auto">
