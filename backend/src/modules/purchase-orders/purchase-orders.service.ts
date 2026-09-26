@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { ContextService } from '../../modules/tenant/context.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
@@ -16,6 +15,7 @@ import {
   DEFAULT_DUE_DAYS,
 } from '../../common/types/payment-method';
 import { AuditLogService } from '../../modules/audit-log/audit-log.service';
+import { StocksService } from '../stocks/stocks.service';
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -23,21 +23,8 @@ export class PurchaseOrdersService {
     private readonly prisma: PrismaService,
     private readonly contextService: ContextService,
     private readonly auditLog: AuditLogService,
+    private readonly stocks: StocksService,
   ) {}
-
-  private async recalcTotalExistence(
-    productId: string,
-    tx: Prisma.TransactionClient,
-  ) {
-    const result = await tx.stock.aggregate({
-      where: { idProduct: productId },
-      _sum: { existence: true },
-    });
-    await tx.product.update({
-      where: { id: productId },
-      data: { totalExistence: result._sum.existence ?? 0 },
-    });
-  }
 
   private get orgId(): string {
     const ctx = this.contextService?.getCurrent();
@@ -330,13 +317,6 @@ export class PurchaseOrdersService {
         existingStocks.map((s) => [s.idProduct, s]),
       );
 
-      const stockDetsToCreate: {
-        idStock: string;
-        type: number;
-        quantity: number;
-        observation: string;
-      }[] = [];
-
       // Validate all details before any writes
       for (const item of dto.details) {
         const line = existing.details.find((d) => d.id === item.id);
@@ -362,21 +342,12 @@ export class PurchaseOrdersService {
 
         let stock = stockByProduct.get(line.idProduct);
 
-        if (stock) {
-          stock = await tx.stock.update({
-            where: { id: stock.id },
-            data: {
-              existence: { increment: item.quantity },
-              version: { increment: 1 },
-              idPurchaseOrder: id,
-            },
-          });
-        } else {
+        if (!stock) {
           stock = await tx.stock.create({
             data: {
               idProduct: line.idProduct,
               idSupplier: existing.idSupplier,
-              existence: item.quantity,
+              existence: 0,
               organizationId: orgId,
               idPurchaseOrder: id,
             },
@@ -384,16 +355,14 @@ export class PurchaseOrdersService {
           stockByProduct.set(line.idProduct, stock);
         }
 
-        stockDetsToCreate.push({
-          idStock: stock.id,
-          type: 1,
+        await this.stocks.receive(tx, {
+          organizationId: orgId,
+          productId: line.idProduct,
+          stockId: stock.id,
           quantity: item.quantity,
+          purchaseOrderId: id,
           observation: `Ingreso parcial por pedido ${existing.code ?? id}`,
         });
-      }
-
-      if (stockDetsToCreate.length > 0) {
-        await tx.stockDet.createMany({ data: stockDetsToCreate });
       }
 
       const refreshedLines = await tx.purchaseOrderDet.findMany({

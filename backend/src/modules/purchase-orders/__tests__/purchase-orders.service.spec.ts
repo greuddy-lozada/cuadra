@@ -4,6 +4,7 @@ import { PurchaseOrdersService } from '../purchase-orders.service';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { ContextService } from '../../tenant/context.service';
 import { AuditLogService } from '../../audit-log/audit-log.service';
+import { StocksService } from '../../stocks/stocks.service';
 import { CreatePurchaseOrderDto } from '../dto/create-purchase-order.dto';
 
 describe('PurchaseOrdersService', () => {
@@ -60,6 +61,10 @@ describe('PurchaseOrdersService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ContextService, useValue: mockContext },
         { provide: AuditLogService, useValue: mockAuditLog },
+        {
+          provide: StocksService,
+          useValue: { receive: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 

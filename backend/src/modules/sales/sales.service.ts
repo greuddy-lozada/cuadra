@@ -9,6 +9,7 @@ import { AppException } from '../../common/errors';
 import { SaleStatus, SALE_STATUS_META } from '../../common/types/statuses';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { DashboardService } from '../dashboard/dashboard.service';
+import { StocksService } from '../stocks/stocks.service';
 import {
   ArApStatus,
   DEFAULT_DUE_DAYS,
@@ -22,6 +23,7 @@ export class SalesService {
     private readonly context: ContextService,
     private readonly auditLog: AuditLogService,
     private readonly dashboard: DashboardService,
+    private readonly stocks: StocksService,
   ) {}
 
   private unpaidAmount(dto: CreateSaleDto): number {
@@ -42,21 +44,6 @@ export class SalesService {
         return sum + p.amount;
       }, 0);
     return Math.max(0, Math.round((total - paidNow) * 10000) / 10000);
-  }
-
-  private async recalcTotalExistence(
-    productId: string,
-    tx?: Prisma.TransactionClient,
-  ) {
-    const db = tx || this.prisma;
-    const result = await db.stock.aggregate({
-      where: { idProduct: productId },
-      _sum: { existence: true },
-    });
-    await db.product.update({
-      where: { id: productId },
-      data: { totalExistence: result._sum.existence ?? 0 },
-    });
   }
 
   async create(dto: CreateSaleDto) {
@@ -116,21 +103,15 @@ export class SalesService {
         const current = byProduct.get(item.productId) || 0;
         byProduct.set(item.productId, current + item.quantity);
       }
-      const stockUpdates: Promise<unknown>[] = [];
-      for (const [productId, totalQty] of byProduct) {
-        stockUpdates.push(
-          tx.stock.updateMany({
-            where: { idProduct: productId, organizationId: orgId },
-            data: { existence: { decrement: totalQty } },
-          }),
-        );
+      for (const productId of [...byProduct.keys()].sort()) {
+        await this.stocks.issue(tx, {
+          organizationId: orgId,
+          productId,
+          quantity: byProduct.get(productId) ?? 0,
+          referenceId: created.id,
+          observation: dto.code ? `Venta ${dto.code}` : 'Venta',
+        });
       }
-      await Promise.all(stockUpdates);
-      await Promise.all(
-        Array.from(byProduct.keys()).map((productId) =>
-          this.recalcTotalExistence(productId, tx),
-        ),
-      );
 
       const unpaid = this.unpaidAmount(dto);
       if (unpaid > 0.01) {
@@ -285,26 +266,14 @@ export class SalesService {
     const sale = await this.findOne(id);
 
     await this.prisma.$transaction(async (tx) => {
-      const byProduct = new Map<string, number>();
-      for (const item of sale.details) {
-        const current = byProduct.get(item.idProduct) || 0;
-        byProduct.set(item.idProduct, current + (item.quantity || 0));
-      }
-      const stockUpdates: Promise<unknown>[] = [];
-      for (const [productId, totalQty] of byProduct) {
-        stockUpdates.push(
-          tx.stock.updateMany({
-            where: { idProduct: productId, organizationId: orgId },
-            data: { existence: { increment: totalQty } },
-          }),
-        );
-      }
-      await Promise.all(stockUpdates);
-      await Promise.all(
-        Array.from(byProduct.keys()).map((productId) =>
-          this.recalcTotalExistence(productId, tx),
-        ),
-      );
+      await this.stocks.restoreSale(tx, {
+        organizationId: orgId,
+        saleId: id,
+        lines: sale.details.map((item) => ({
+          productId: item.idProduct,
+          quantity: item.quantity || 0,
+        })),
+      });
 
       await tx.sale.delete({
         where: { id, organizationId: orgId },

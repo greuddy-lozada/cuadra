@@ -97,6 +97,11 @@
   "BOOTSTRAP": {
     "SLUG_TAKEN": "El slug ya está en uso"
   },
+  "sales": {
+    "error": {
+      "insufficientStock": "No hay existencia suficiente para esta venta"
+    }
+  },
   "COMMON": {
     "RECORD_NOT_FOUND": "Registro no encontrado",
     "VALIDATION_ERROR": "Error de validación",

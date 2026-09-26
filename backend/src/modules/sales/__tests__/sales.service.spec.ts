@@ -5,6 +5,7 @@ import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { ContextService } from '../../tenant/context.service';
 import { AuditLogService } from '../../audit-log/audit-log.service';
 import { DashboardService } from '../../dashboard/dashboard.service';
+import { StocksService } from '../../stocks/stocks.service';
 import { CreateSaleDto } from '../dto/create-sale.dto';
 import { UpdateSaleDto } from '../dto/update-sale.dto';
 
@@ -42,6 +43,11 @@ describe('SalesService', () => {
     notifySaleCreated: jest.fn(),
   };
 
+  const mockStocks = {
+    issue: jest.fn().mockResolvedValue(undefined),
+    restoreSale: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -50,6 +56,7 @@ describe('SalesService', () => {
         { provide: ContextService, useValue: mockContext },
         { provide: AuditLogService, useValue: mockAuditLog },
         { provide: DashboardService, useValue: mockDashboard },
+        { provide: StocksService, useValue: mockStocks },
       ],
     }).compile();
 

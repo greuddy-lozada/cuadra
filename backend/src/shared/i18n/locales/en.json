@@ -97,6 +97,11 @@
   "BOOTSTRAP": {
     "SLUG_TAKEN": "Slug is already in use"
   },
+  "sales": {
+    "error": {
+      "insufficientStock": "Not enough stock for this sale"
+    }
+  },
   "COMMON": {
     "RECORD_NOT_FOUND": "Record not found",
     "VALIDATION_ERROR": "Validation error",

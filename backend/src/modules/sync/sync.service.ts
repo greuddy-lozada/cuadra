@@ -243,18 +243,21 @@ export class SyncService {
           ),
       ),
     ];
-    const stockMap = new Map(
+    const stockRows =
       relevantProductIds.length > 0
-        ? (
-            await this.prisma.stock.findMany({
-              where: {
-                idProduct: { in: relevantProductIds },
-                organizationId: orgId,
-              },
-            })
-          ).map((s) => [s.idProduct, s])
-        : [],
-    );
+        ? await this.prisma.stock.findMany({
+            where: {
+              idProduct: { in: relevantProductIds },
+              organizationId: orgId,
+            },
+            select: { idProduct: true, existence: true },
+          })
+        : [];
+    const stockMap = new Map<string, { existence: number }>();
+    for (const row of stockRows) {
+      const current = stockMap.get(row.idProduct)?.existence ?? 0;
+      stockMap.set(row.idProduct, { existence: current + row.existence });
+    }
 
     const accepted: string[] = [];
     const conflicts: Array<{

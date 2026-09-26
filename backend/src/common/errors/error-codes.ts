@@ -12,6 +12,7 @@ export const ErrorCodes = {
   SALE_002: 'sales.error.notFound',
   SALE_003: 'sales.error.noItems',
   SALE_004: 'sales.error.creditNeedsCustomer',
+  SALE_005: 'sales.error.insufficientStock',
   PO_001: 'purchaseOrders.error.receivedImmutable',
   PO_002: 'purchaseOrders.error.notFound',
   PO_003: 'purchaseOrders.error.alreadyReceived',
